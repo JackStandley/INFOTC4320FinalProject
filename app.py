@@ -10,6 +10,39 @@ def get_db_connection():
     conn = sqlite3.connect('reservations.db')
     conn.row_factory = sqlite3.Row
     return conn
+
+def get_cost_matrix():
+    cost_matrix = [[100, 75, 50, 100] for row in range(12)]
+    return cost_matrix
+
+#seating chart function
+
+def render_seating_chart(reserved_seats):
+    # Initialize an empty seating grid
+    seat_grid = [['O' for _ in range(4)] for _ in range(12)]
+    
+    # Mark reserved seats with 'X'
+    for seat in reserved_seats:
+        seat_row = seat['seatRow']
+        seat_column = seat['seatColumn']
+        seat_grid[seat_row][seat_column] = 'X'
+
+    return seat_grid
+
+#calculate total earnings function
+
+def calculate_total_earnings(seat_grid):
+    cost_matrix = get_cost_matrix()
+    total_earnings = 0
+
+    for row_index in range(12):
+        for col_index in range(4):
+            if seat_grid[row_index][col_index] == 'X':
+                total_earnings += cost_matrix[row_index][col_index]
+
+    return total_earnings
+
+
 #home route
 @app.route('/')
 def home():
@@ -50,7 +83,20 @@ def reserve():
 #admin page route
 @app.route('/admin_seating')
 def admin_seating():
-    return render_template('admin_seating.html')
+    if 'username' not in session:  # Ensure only logged-in admins can access this
+        return redirect(url_for('admin'))
+    
+    conn = get_db_connection()
+
+    # Get reserved seats
+    reserved_seats = conn.execute('SELECT seatRow, seatColumn FROM reservations;').fetchall()
+    conn.close()
+
+    # Render seating chart and calculate total earnings
+    seat_grid = render_seating_chart(reserved_seats)
+    total_earnings = calculate_total_earnings(seat_grid)
+    
+    return render_template('admin_seating.html', seat_grid=seat_grid, total_earnings=total_earnings)
 
 
 #pick menu option from home

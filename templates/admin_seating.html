@@ -1,5 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>ADMIM SEATING</h1>
+<h1>Seat Availability</h1>
+<hr>
+<h4>Printing Seating Chart...</h4>
+
+<div class="seat-grid">
+    {% for row in seat_grid %}
+        <p>({{ row|join(', ') }})</p>
+    {% endfor %}
+</div>
+<h4>Total Sales: ${{ total_earnings }} </h4>
 {% endblock %}
