@@ -1,5 +1,47 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>RESERVE</h1>
+    
+<h1>Reserve Your Seat</h1>
+<hr>
+<h3>Seating Chart</h3>
+<h4>X = Reserved Seat : O = Available Seat</h4>
+
+<div class="seat-grid">
+    {% for row in seat_grid %}
+        <p>({{ row|join(', ') }})</p>
+    {% endfor %}
+
+    
+</div>
+
+<div class="reserve">
+  <form action="/reserve" method="POST">
+        <div class="form-group">
+          <label for="first_name">First Name</label>
+          <input type = "text" id="first_name" name="first_name" class="form-control" required>
+        </div>
+
+        <div>
+              <label for="row">Choose a row:</label>
+              <select id="row" name="row">
+                  {% for i in range(1, 13) %}
+                      <option value="{{ i }}">{{ i }}</option>
+                  {% endfor %}
+              </select>
+        </div>
+        <div>
+              <label for="seat">Choose a Seat:</label>
+              <select id="seat" name="seat">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+              </select>
+        </div>
+        <button type="submit">Submit</button>
+
+      </form>
+
+</div>
 {% endblock %}

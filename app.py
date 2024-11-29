@@ -18,16 +18,33 @@ def get_cost_matrix():
 #seating chart function
 
 def render_seating_chart(reserved_seats):
-    # Initialize an empty seating grid
+    #initialize an empty seating grid
     seat_grid = [['O' for _ in range(4)] for _ in range(12)]
     
-    # Mark reserved seats with 'X'
+    #mark reserved seats with 'X'
     for seat in reserved_seats:
         seat_row = seat['seatRow']
         seat_column = seat['seatColumn']
         seat_grid[seat_row][seat_column] = 'X'
 
     return seat_grid
+
+def generate_e_ticket_number(name):
+    infotc = "INFOTC4320"
+    result = []
+    name_index = 0
+    weave_index = 0
+
+    while name_index < len(name) or weave_index < len(infotc):
+        if name_index < len(name):
+            result.append(name[name_index])
+            name_index += 1
+        if weave_index < len(infotc):
+            result.append(infotc[weave_index])
+            weave_index += 1
+
+    return ''.join(result)
+                    
 
 #calculate total earnings function
 
@@ -78,7 +95,65 @@ def admin_login():
 #reserve seat route
 @app.route('/reserve', methods=['GET', 'POST'])
 def reserve():
-    return render_template('reserve.html')
+    conn = get_db_connection()
+    try:
+        if request.method == 'POST':
+            # Get form data
+            first_name = request.form.get('first_name')
+            row = request.form.get('row')
+            seat = request.form.get('seat')
+
+            # All fields must include data
+            if not first_name or not row or not seat:
+                flash('All fields are required.', 'error')
+                reserved_seats = conn.execute('SELECT seatRow, seatColumn FROM reservations;').fetchall()
+                seat_grid = render_seating_chart(reserved_seats)
+                return render_template('reserve.html', seat_grid=seat_grid)
+
+            # Convert to zero-based index 
+            row_index = int(row) - 1
+            seat_index = int(seat) - 1
+
+            # Check if seat is already reserved
+            seat_exists = conn.execute(
+                'SELECT * FROM reservations WHERE seatRow = ? AND seatColumn = ?',
+                (row_index, seat_index)
+            ).fetchone()
+
+            if seat_exists:
+                flash(f"Seat {row}-{seat} is already reserved. Please select a different seat.", 'error')
+                reserved_seats = conn.execute('SELECT seatRow, seatColumn FROM reservations;').fetchall()
+                seat_grid = render_seating_chart(reserved_seats)
+                return render_template('reserve.html', seat_grid=seat_grid)
+
+            # Generate eTicketNumber
+            e_ticket_number = generate_e_ticket_number(first_name)
+
+            # Insert reservation into the database
+            conn.execute(
+                'INSERT INTO reservations (passengerName, seatRow, seatColumn, eTicketNumber) VALUES (?, ?, ?, ?)',
+                (first_name, row_index, seat_index, e_ticket_number)
+            )
+            conn.commit()
+
+            # Flash success message and redirect
+            flash(f"Seat {row}-{seat} reserved successfully for {first_name} with eTicket {e_ticket_number}!", 'success')
+            return redirect('/reserve')
+
+        # For GET requests, render seating chart
+        reserved_seats = conn.execute('SELECT seatRow, seatColumn FROM reservations;').fetchall()
+        seat_grid = render_seating_chart(reserved_seats)
+        return render_template('reserve.html', seat_grid=seat_grid)
+
+    finally:
+        conn.close()
+
+
+
+
+
+
+
 
 #admin page route
 @app.route('/admin_seating')
