@@ -13,12 +13,34 @@ def get_db_connection():
 #home route
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return render_template('home.html', title="Home")
 
 #admin login route
 @app.route('/admin_login', methods=['GET', 'POST'])
-def admin():
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Connect to the database
+        conn = get_db_connection()
+        
+        # Check if the username and password exist in the admins table
+        user = conn.execute('SELECT * FROM admins WHERE username = ? AND password = ?',
+                            (username, password)).fetchone()
+        conn.close()
+
+        #if the user exists, store their username in the session
+        if user:
+            session['username'] = username
+            return redirect(url_for('admin_seating'))
+        else:
+            #render the login page with an error message
+            return render_template('admin_login.html', error="Invalid credentials. Please try again.")
+
+
     return render_template('admin_login.html')
+
 
 #reserve seat route
 @app.route('/reserve', methods=['GET', 'POST'])

@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>ADMIN LOGIN</h1>
+<h1>Administrator Login</h1>
+
+<div class="login">
+  <hr>
+  <form action="/admin_login" method="POST">
+      <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required>
+      </div>
+      <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+      </div>
+      <button type="submit">Login</button>
+      {% if error %}
+        <div class="error" style="color: red;">{{ error }}</div>
+      {% endif %}
+  </form>
+
+</div>
 {% endblock %}

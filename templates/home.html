@@ -1,5 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>HOME</h1>
+    <h1>IT-4320 Trip Reservation System</h1>
+    <hr>
+    <div>
+        <p>
+            Welcome to the IT-4320 reservation system. Use the select box to choose whether to make a reservation or log in as administrator.
+        </p>
+    </div>
+    <form action="/menu_option" method="POST">
+        <div>
+            <label for="Menu">Choose Menu Option:</label>
+            <select id="Menu" name="Menu">
+                <option value="">Choose Menu</option>
+                <option value="/admin_login">Log In as Admin</option>
+                <option value="/reserve">Reserve</option>
+            </select>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
 {% endblock %}
